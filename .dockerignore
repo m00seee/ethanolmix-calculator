@@ -1,0 +1,11 @@
+.git
+.github
+.gitattributes
+.gitignore
+README.md
+CNAME
+setup.sh
+ethanol-mix.service
+Dockerfile
+.dockerignore
+*.md
