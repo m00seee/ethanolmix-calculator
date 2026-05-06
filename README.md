@@ -8,6 +8,59 @@ A lightweight, zero-dependency web app that calculates the precise blend of two 
 
 ---
 
+## Docker Deployment
+
+A pre-built image is published to GHCR for both `linux/amd64` and `linux/arm64`:
+
+```
+ghcr.io/m00seee/ethanolmix-calculator:latest
+```
+
+### Option A: `docker run`
+
+```bash
+docker run -d \
+  --name ethanol-mix \
+  -p 3000:3000 \
+  # --restart unless-stopped \
+  ghcr.io/m00seee/ethanolmix-calculator:latest
+```
+
+Uncomment the `--restart unless-stopped` line if you want the container to come back up automatically after a host reboot or crash.
+
+### Option B: `docker compose`
+
+Create a `compose.yml`:
+
+```yaml
+services:
+  ethanol-mix:
+    image: ghcr.io/m00seee/ethanolmix-calculator:latest
+    container_name: ethanol-mix
+    ports:
+      - "3000:3000"
+    # restart: unless-stopped
+```
+
+Uncomment the `restart` line for autostart on host reboot.
+
+Then start it:
+
+```bash
+docker compose up -d
+```
+
+Visit `http://localhost:3000`.
+
+### Updating
+
+```bash
+docker pull ghcr.io/m00seee/ethanolmix-calculator:latest
+docker compose up -d   # or: docker rm -f ethanol-mix && docker run ... again
+```
+
+---
+
 ## Linux Deployment
 
 Tested on Ubuntu 22.04 / Debian 12. Should work on any systemd-based distro.
