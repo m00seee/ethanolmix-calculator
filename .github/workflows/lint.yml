@@ -1,0 +1,35 @@
+name: Lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ShellCheck (setup.sh)
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: '.'
+
+      - name: Hadolint (Dockerfile)
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+
+      - name: actionlint (workflows)
+        uses: raven-actions/actionlint@v2
+
+      - name: Node syntax check (server.js)
+        run: node --check server.js
+
+      - name: HTML validation (index.html)
+        uses: Cyb3r-Jak3/html5validator-action@v7.2.0
+        with:
+          root: .
+          match: 'index.html'
