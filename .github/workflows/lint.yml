@@ -10,7 +10,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: ShellCheck (setup.sh)
         uses: ludeeus/action-shellcheck@master
@@ -18,7 +18,7 @@ jobs:
           scandir: '.'
 
       - name: Hadolint (Dockerfile)
-        uses: hadolint/hadolint-action@v3.1.0
+        uses: hadolint/hadolint-action@v3.3.0
         with:
           dockerfile: Dockerfile
 
@@ -29,7 +29,7 @@ jobs:
         run: node --check server.js
 
       - name: HTML validation (index.html)
-        uses: Cyb3r-Jak3/html5validator-action@v7.2.0
+        uses: Cyb3r-Jak3/html5validator-action@v8.0.0
         with:
           root: .
           match: 'index.html'
