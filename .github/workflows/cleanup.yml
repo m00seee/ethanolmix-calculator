@@ -6,20 +6,28 @@ on:
   workflow_dispatch:
 
 jobs:
-  purge:
+  purge-untagged:
     runs-on: ubuntu-latest
     permissions:
       packages: write
     steps:
-      - name: Delete untagged & old versions
-        uses: snok/container-retention-policy@v3.0.0
+      - name: Delete untagged versions (build cache, orphaned layers)
+        uses: actions/delete-package-versions@v5
         with:
-          account: ${{ github.repository_owner }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          image-names: ethanolmix-calculator
-          # Keep all version-tagged releases (v*, semver, latest)
-          image-tags: '!v* !latest !*.*.* !*.* !main'
-          # For everything else (sha tags, untagged), keep only the 10 most recent
-          cut-off: 1d
-          keep-n-most-recent: 10
-          tag-selection: both
+          package-name: ethanolmix-calculator
+          package-type: container
+          min-versions-to-keep: 3
+          delete-only-untagged-versions: 'true'
+
+  purge-sha-tags:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - name: Delete old sha-tagged versions, keep semver/latest/main
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: ethanolmix-calculator
+          package-type: container
+          min-versions-to-keep: 10
+          ignore-versions: '^(v?\d+(\.\d+)*|latest|main)$'
