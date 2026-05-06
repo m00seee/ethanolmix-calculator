@@ -4,8 +4,8 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/node %h/ethanol-mix-lite/server.js
-WorkingDirectory=%h/ethanol-mix-lite
+ExecStart=/usr/bin/node __APP_DIR__/server.js
+WorkingDirectory=__APP_DIR__
 Restart=on-failure
 RestartSec=5
 Environment=PORT=3000
