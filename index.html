@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ethanol Mix Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --accent:#10b981; --accent-2:#06b6d4; --accent-glow:rgba(16,185,129,.15);
+  --error:#ef4444;
+  --bg:#fafafa; --surface:#fff; --surface-2:#f4f4f5;
+  --text:#09090b; --muted:#71717a; --border:#e4e4e7;
+  --shadow:0 1px 2px rgba(0,0,0,.04),0 4px 12px rgba(0,0,0,.04);
+  --shadow-lg:0 8px 30px rgba(0,0,0,.08);
+}
+[data-theme=dark]{
+  --bg:#09090b; --surface:#18181b; --surface-2:#27272a;
+  --text:#fafafa; --muted:#a1a1aa; --border:#27272a;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 12px rgba(0,0,0,.2);
+  --shadow-lg:0 8px 30px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Inter',system-ui,-apple-system,sans-serif;
+  font-feature-settings:"cv02","cv03","cv04","cv11";
+  background:var(--bg); color:var(--text); min-height:100vh;
+  line-height:1.5; letter-spacing:-.011em;
+  -webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:-1;
+  background:
+    radial-gradient(800px 400px at 80% -10%,var(--accent-glow),transparent 60%),
+    radial-gradient(600px 300px at 0% 100%,rgba(6,182,212,.08),transparent 60%);
+}
+.wrap{max-width:780px;margin:0 auto;padding:48px 24px 80px}
+header{margin-bottom:40px}
+.brand{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.logo{
+  width:36px;height:36px;border-radius:10px;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  display:grid;place-items:center;color:#fff;font-weight:700;
+  box-shadow:0 4px 12px var(--accent-glow);
+}
+.brand-name{font-size:.85rem;font-weight:600;color:var(--muted);letter-spacing:.02em;text-transform:uppercase}
+h1{font-size:2.25rem;font-weight:700;letter-spacing:-.03em;line-height:1.15;margin-bottom:8px}
+.tagline{color:var(--muted);font-size:1rem}
+
+.card{
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:16px; padding:32px; box-shadow:var(--shadow);
+}
+section+section{margin-top:28px;padding-top:28px;border-top:1px solid var(--border)}
+.section-label{
+  font-size:.75rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:16px;
+}
+.row{margin-bottom:14px}
+.row:last-child{margin-bottom:0}
+label.field{display:block}
+.field-label{
+  display:flex;justify-content:space-between;align-items:baseline;
+  font-size:.875rem;font-weight:500;color:var(--text);margin-bottom:6px;
+}
+.unit{color:var(--muted);font-size:.8rem;font-weight:400}
+input[type=number]{
+  width:100%;padding:11px 14px;
+  background:var(--bg);
+  border:1px solid var(--border); border-radius:10px;
+  color:var(--text); font:inherit; font-size:.95rem;
+  font-variant-numeric:tabular-nums;
+  transition:border-color .15s,box-shadow .15s,background .15s;
+}
+input[type=number]:hover{border-color:var(--muted)}
+input[type=number]:focus{
+  outline:none;border-color:var(--accent);
+  box-shadow:0 0 0 3px var(--accent-glow);
+}
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button{opacity:.5}
+
+.segmented{
+  display:inline-flex;background:var(--surface-2);border-radius:10px;padding:3px;
+  border:1px solid var(--border);
+}
+.segmented input{position:absolute;opacity:0;pointer-events:none}
+.segmented label{
+  padding:7px 16px;font-size:.875rem;font-weight:500;
+  color:var(--muted);cursor:pointer;border-radius:7px;
+  transition:all .2s;
+}
+.segmented input:checked+label{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
+
+.fuels{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.fuel{
+  padding:18px;background:var(--surface-2);
+  border:1px solid var(--border);border-radius:12px;
+}
+.fuel-head{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.fuel:nth-child(2) .dot{background:var(--accent-2)}
+.fuel-title{font-size:.875rem;font-weight:600}
+.fuel-sub{font-size:.75rem;color:var(--muted);margin-left:auto}
+
+button.submit{
+  width:100%;margin-top:28px;padding:14px;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  color:#fff;border:none;border-radius:12px;
+  font:inherit;font-size:.95rem;font-weight:600;letter-spacing:-.01em;
+  cursor:pointer;transition:transform .1s,box-shadow .2s;
+  box-shadow:0 4px 14px var(--accent-glow);
+}
+button.submit:hover{transform:translateY(-1px);box-shadow:0 6px 20px var(--accent-glow)}
+button.submit:active{transform:translateY(0)}
+
+#result{margin-top:24px;opacity:0;transform:translateY(8px);transition:all .4s}
+#result.show{opacity:1;transform:translateY(0)}
+.result-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:16px;padding:28px;box-shadow:var(--shadow-lg);
+}
+.result-card.error{border-color:var(--error);background:rgba(239,68,68,.04)}
+.result-head{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.result-head h3{font-size:1.125rem;font-weight:600;letter-spacing:-.02em}
+.result-card.error h3{color:var(--error)}
+.check{
+  width:24px;height:24px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  display:grid;place-items:center;color:#fff;font-size:.75rem;
+}
+.result-card.error .check{background:var(--error)}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.metric{
+  padding:16px;background:var(--surface-2);border-radius:10px;
+  border:1px solid var(--border);
+}
+.metric.feature{
+  grid-column:span 2;
+  background:linear-gradient(135deg,var(--accent-glow),rgba(6,182,212,.08));
+  border-color:transparent;
+}
+.metric .k{font-size:.75rem;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.metric .v{
+  font-family:'JetBrains Mono',ui-monospace,monospace;
+  font-size:1.5rem;font-weight:700;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;
+}
+.metric.feature .v{
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.metric .v small{font-size:.875rem;font-weight:500;color:var(--muted);margin-left:4px;font-family:'Inter',sans-serif}
+.metric.feature .v small{color:var(--muted);-webkit-text-fill-color:var(--muted)}
+
+.theme{
+  position:fixed;top:24px;right:24px;
+  width:40px;height:40px;border-radius:10px;
+  background:var(--surface);border:1px solid var(--border);
+  color:var(--text);cursor:pointer;font-size:1rem;
+  display:grid;place-items:center;box-shadow:var(--shadow);
+  transition:transform .2s;
+}
+.theme:hover{transform:scale(1.05)}
+
+@media(max-width:600px){
+  .wrap{padding:32px 16px 60px}
+  .card{padding:24px}
+  h1{font-size:1.75rem}
+  .fuels,.metrics{grid-template-columns:1fr}
+  .metric.feature{grid-column:span 1}
+}
+</style>
+</head>
+<body>
+<button class="theme" id="t" aria-label="Toggle theme">☀</button>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo">⛽</div>
+      <span class="brand-name">FuelMix</span>
+    </div>
+    <h1>Ethanol Mix Calculator</h1>
+    <p class="tagline">Calculate the precise blend to hit your target ethanol percentage.</p>
+  </header>
+
+  <div class="card">
+    <form id="f">
+      <section>
+        <div class="section-label">Unit System</div>
+        <div class="segmented">
+          <input type="radio" name="unit" id="u-m" value="metric" checked>
+          <label for="u-m">Metric · L</label>
+          <input type="radio" name="unit" id="u-i" value="imperial">
+          <label for="u-i">Imperial · gal</label>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-label">Tank</div>
+        <div class="row"><label class="field">
+          <span class="field-label">Current fuel <span class="unit u">liters</span></span>
+          <input type="number" step="0.01" id="cur" required min="0" placeholder="0.00">
+        </label></div>
+        <div class="row"><label class="field">
+          <span class="field-label">Tank capacity <span class="unit u">liters</span></span>
+          <input type="number" step="0.01" id="cap" required min="0" placeholder="0.00">
+        </label></div>
+        <div class="row"><label class="field">
+          <span class="field-label">Current octane <span class="unit">RON</span></span>
+          <input type="number" step="0.1" id="curO" required min="0" placeholder="95.0">
+        </label></div>
+        <div class="row"><label class="field">
+          <span class="field-label">Current ethanol <span class="unit">%</span></span>
+          <input type="number" step="0.1" id="curE" required min="0" max="100" placeholder="10.0">
+        </label></div>
+      </section>
+
+      <section>
+        <div class="section-label">Target</div>
+        <div class="row"><label class="field">
+          <span class="field-label">Target ethanol <span class="unit">%</span></span>
+          <input type="number" step="0.1" id="tgt" required min="0" max="100" placeholder="30.0">
+        </label></div>
+      </section>
+
+      <section>
+        <div class="section-label">Available Fuels</div>
+        <div class="fuels">
+          <div class="fuel">
+            <div class="fuel-head">
+              <span class="dot"></span>
+              <span class="fuel-title">Fuel #1</span>
+              <span class="fuel-sub">lower</span>
+            </div>
+            <div class="row"><label class="field">
+              <span class="field-label">Ethanol <span class="unit">%</span></span>
+              <input type="number" step="0.1" id="f1e" value="0" required min="0" max="100">
+            </label></div>
+            <div class="row"><label class="field">
+              <span class="field-label">Octane <span class="unit">RON</span></span>
+              <input type="number" step="0.1" id="f1o" required min="0" placeholder="95.0">
+            </label></div>
+          </div>
+          <div class="fuel">
+            <div class="fuel-head">
+              <span class="dot"></span>
+              <span class="fuel-title">Fuel #2</span>
+              <span class="fuel-sub">higher</span>
+            </div>
+            <div class="row"><label class="field">
+              <span class="field-label">Ethanol <span class="unit">%</span></span>
+              <input type="number" step="0.1" id="f2e" value="85" required min="0" max="100">
+            </label></div>
+            <div class="row"><label class="field">
+              <span class="field-label">Octane <span class="unit">RON</span></span>
+              <input type="number" step="0.1" id="f2o" required min="0" placeholder="105.0">
+            </label></div>
+          </div>
+        </div>
+      </section>
+
+      <button type="submit" class="submit">Calculate Mixture</button>
+    </form>
+  </div>
+
+  <div id="result"></div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const updateUnits=()=>{
+  const m=document.querySelector('input[name=unit]:checked').value==='metric';
+  document.querySelectorAll('.u').forEach(e=>e.textContent=m?'liters':'gallons');
+};
+document.querySelectorAll('input[name=unit]').forEach(r=>r.addEventListener('change',updateUnits));
+
+const t=$('t'),html=document.documentElement;
+const setTheme=th=>{html.setAttribute('data-theme',th);t.textContent=th==='dark'?'☀':'☾';localStorage.theme=th};
+setTheme(localStorage.theme||'dark');
+t.onclick=()=>setTheme(html.getAttribute('data-theme')==='dark'?'light':'dark');
+
+$('f').addEventListener('submit',e=>{
+  e.preventDefault();
+  const r=$('result');
+  const show=(html,err)=>{
+    r.innerHTML=`<div class="result-card${err?' error':''}">
+      <div class="result-head"><div class="check">${err?'!':'✓'}</div><h3>${err?'Invalid Input':'Mixing Instructions'}</h3></div>
+      ${html}
+    </div>`;
+    r.classList.remove('show');
+    requestAnimationFrame(()=>{r.classList.add('show');r.scrollIntoView({behavior:'smooth',block:'start'})});
+  };
+  const v=id=>parseFloat($(id).value);
+  const metric=document.querySelector('input[name=unit]:checked').value==='metric';
+  const u=metric?'L':'gal';
+  const cur=v('cur'),cap=v('cap'),curO=v('curO'),curE=v('curE'),tgt=v('tgt'),f1e=v('f1e'),f1o=v('f1o'),f2e=v('f2e'),f2o=v('f2o');
+  try{
+    if(cur>=cap)throw Error('Current fuel must be less than tank capacity.');
+    if(f1e===f2e)throw Error('Fuel #1 and Fuel #2 must have different ethanol percentages.');
+    const fill=cap-cur;
+    const num=(tgt/100)*cap-cur*(curE/100)-fill*(f2e/100);
+    const f1n=num/(f1e/100-f2e/100);
+    const f2n=fill-f1n;
+    if(f1n<0||f2n<0)throw Error('Target ethanol % must be between your two fuel ethanol values.');
+    const total=cur+f1n+f2n;
+    const oct=((cur*curO)+(f1n*f1o)+(f2n*f2o))/total;
+    show(`<div class="metrics">
+      <div class="metric"><div class="k">Fuel #1 needed</div><div class="v">${f1n.toFixed(2)}<small>${u}</small></div></div>
+      <div class="metric"><div class="k">Fuel #2 needed</div><div class="v">${f2n.toFixed(2)}<small>${u}</small></div></div>
+      <div class="metric feature"><div class="k">Resulting Octane</div><div class="v">${oct.toFixed(1)}<small>RON</small></div></div>
+      <div class="metric"><div class="k">Total fuel</div><div class="v">${total.toFixed(2)}<small>${u}</small></div></div>
+      <div class="metric"><div class="k">Ethanol</div><div class="v">${tgt}<small>%</small></div></div>
+    </div>`);
+  }catch(err){show(`<p style="color:var(--muted)">${err.message}</p>`,true)}
+});
+updateUnits();
+</script>
+</body>
+</html>

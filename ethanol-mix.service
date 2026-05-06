@@ -1,0 +1,15 @@
+[Unit]
+Description=Ethanol Mix Calculator
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/node %h/ethanol-mix-lite/server.js
+WorkingDirectory=%h/ethanol-mix-lite
+Restart=on-failure
+RestartSec=5
+Environment=PORT=3000
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
