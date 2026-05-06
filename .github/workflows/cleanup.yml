@@ -6,28 +6,56 @@ on:
   workflow_dispatch:
 
 jobs:
-  purge-untagged:
+  purge:
     runs-on: ubuntu-latest
     permissions:
       packages: write
-    steps:
-      - name: Delete untagged versions (build cache, orphaned layers)
-        uses: actions/delete-package-versions@v5
-        with:
-          package-name: ethanolmix-calculator
-          package-type: container
-          min-versions-to-keep: 3
-          delete-only-untagged-versions: 'true'
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      OWNER: ${{ github.repository_owner }}
+      PACKAGE: ethanolmix-calculator
+      KEEP_UNTAGGED: 3
+      KEEP_SHA_TAGGED: 10
+      KEEP_REGEX: '^(v?[0-9]+(\\.[0-9]+)*|latest|main)$'
 
-  purge-sha-tags:
-    runs-on: ubuntu-latest
-    permissions:
-      packages: write
     steps:
-      - name: Delete old sha-tagged versions, keep semver/latest/main
-        uses: actions/delete-package-versions@v5
-        with:
-          package-name: ethanolmix-calculator
-          package-type: container
-          min-versions-to-keep: 10
-          ignore-versions: '^(v?\d+(\.\d+)*|latest|main)$'
+      - name: Fetch all package versions
+        run: |
+          gh api --paginate \
+            "/users/$OWNER/packages/container/$PACKAGE/versions" \
+            --jq '.[] | {id, created_at, tags: (.metadata.container.tags // [])}' \
+            | jq -s '.' > versions.json
+          echo "Total versions: $(jq 'length' versions.json)"
+
+      - name: Delete untagged versions (keep most recent ${{ env.KEEP_UNTAGGED }})
+        run: |
+          ids=$(jq -r --argjson keep "$KEEP_UNTAGGED" '
+            map(select(.tags | length == 0))
+            | sort_by(.created_at) | reverse
+            | .[$keep:] | .[].id
+          ' versions.json)
+          count=$(echo "$ids" | grep -c . || true)
+          echo "Deleting $count untagged versions"
+          for id in $ids; do
+            gh api --method DELETE \
+              "/users/$OWNER/packages/container/$PACKAGE/versions/$id" \
+              && echo "  deleted $id"
+          done
+
+      - name: Delete old sha-tagged versions (keep most recent ${{ env.KEEP_SHA_TAGGED }})
+        run: |
+          ids=$(jq -r --argjson keep "$KEEP_SHA_TAGGED" --arg re "$KEEP_REGEX" '
+            map(select(
+              (.tags | length > 0) and
+              ([.tags[] | test($re)] | any | not)
+            ))
+            | sort_by(.created_at) | reverse
+            | .[$keep:] | .[].id
+          ' versions.json)
+          count=$(echo "$ids" | grep -c . || true)
+          echo "Deleting $count old sha-tagged versions"
+          for id in $ids; do
+            gh api --method DELETE \
+              "/users/$OWNER/packages/container/$PACKAGE/versions/$id" \
+              && echo "  deleted $id"
+          done
